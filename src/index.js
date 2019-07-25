@@ -9,7 +9,7 @@ import * as likesView from './views/likesView';
 import { DOMElems, loader } from './views/base';
 import './mathExtend';
 
-/* Global state
+/* Global state object
 * - Search object
 * - Current recipe object
 * - Shopping list object
@@ -19,19 +19,6 @@ const state = {
 	prevQuery: ''
 };
 
-DOMElems.searchForm.addEventListener('submit', event => {
-	event.preventDefault();
-	controlSearch();
-});
-DOMElems.resultsPages.addEventListener('click', event => {
-	const button = event.target.closest('.btn-inline');
-	if (button) {
-		const page = parseInt(button.dataset.goto);
-		searchView.clearResults();
-		searchView.renderResults(state.search.results, page);
-	}
-	
-});
 
 
 /*
@@ -115,33 +102,9 @@ async function controlRecipe() {
 			console.log(error);
 			alert('Error loading recipe!');
 		}
-		
 	}
 }
 
-window.addEventListener('hashchange', controlRecipe);
-window.addEventListener('load', controlRecipe);
-
-// recipe increse or decrease servings buttons click handler
-DOMElems.recipeContainer.addEventListener('click', event => {
-	if (event.target.closest('.btn-decrease')) {
-		// decriase servings
-		if (state.recipe.servings > 1) {
-			state.recipe.updateServings('dec');
-			recipeView.updateServingsIngredients(state.recipe);
-		}
-	} else if (event.target.closest('.btn-increase')) {
-		// increase servings
-		state.recipe.updateServings('inc');
-		recipeView.updateServingsIngredients(state.recipe);
-	} else if (event.target.closest('.recipe__btn--add')) {
-		// add ingredients to the shopping list
-		controlList();
-	} else if (event.target.closest('.recipe__love')) {
-		// add the recipe to likes
-		controlLikes();
-	}
-});
 
 
 /*
@@ -158,24 +121,11 @@ function controlList() {
 	});
 }
 
-DOMElems.listList.addEventListener('click', event => {
-	const id = event.target.closest('.shopping__item').dataset.itemid;
-
-	if (event.target.matches('.shopping__delete, .shopping__delete *')) {
-		// handle deleting an item
-		state.list.deleteItem(id);
-		listView.deleteItem(id);
-	} else if (event.target.matches('.shopping__count--value')) {
-		// handle updating the quantity
-		state.list.updateItemQuantity(id, parseFloat(event.target.value, 10));
-	}
-});
 
 
 /*
 	LIKES CONTROLLER
 */
-
 function controlLikes() {
 	if (!state.likes.isLiked(state.recipe.id)) {
 		// add liked recipe to the state
@@ -200,6 +150,61 @@ function controlLikes() {
 
 	likesView.toggleLikesMenu(state.likes.getNumLikes());
 }
+
+/*
+	EVENT LISTENERS
+*/
+window.addEventListener('hashchange', controlRecipe);
+
+window.addEventListener('load', controlRecipe);
+
+DOMElems.searchForm.addEventListener('submit', event => {
+	event.preventDefault();
+	controlSearch();
+});
+
+DOMElems.resultsPages.addEventListener('click', event => {
+	const button = event.target.closest('.btn-inline');
+	if (button) {
+		const page = parseInt(button.dataset.goto);
+		searchView.clearResults();
+		searchView.renderResults(state.search.results, page);
+	}
+});
+
+// recipe increse or decrease servings buttons click handler
+DOMElems.recipeContainer.addEventListener('click', event => {
+	if (event.target.closest('.btn-decrease')) {
+		// decriase servings
+		if (state.recipe.servings > 1) {
+			state.recipe.updateServings('dec');
+			recipeView.updateServingsIngredients(state.recipe);
+		}
+	} else if (event.target.closest('.btn-increase')) {
+		// increase servings
+		state.recipe.updateServings('inc');
+		recipeView.updateServingsIngredients(state.recipe);
+	} else if (event.target.closest('.recipe__btn--add')) {
+		// add ingredients to the shopping list
+		controlList();
+	} else if (event.target.closest('.recipe__love')) {
+		// add the recipe to likes
+		controlLikes();
+	}
+});
+
+DOMElems.listList.addEventListener('click', event => {
+	const id = event.target.closest('.shopping__item').dataset.itemid;
+
+	if (event.target.matches('.shopping__delete, .shopping__delete *')) {
+		// handle deleting an item
+		state.list.deleteItem(id);
+		listView.deleteItem(id);
+	} else if (event.target.matches('.shopping__count--value')) {
+		// handle updating the quantity
+		state.list.updateItemQuantity(id, parseFloat(event.target.value, 10));
+	}
+});
 
 // get liked recipes from the localStorage
 window.addEventListener('load', () => {
